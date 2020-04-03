@@ -1,0 +1,64 @@
+---
+title: "COVID-19 April"
+author: "PhD Dejan Mircetic"
+date: '`r format(Sys.Date(), "%Y-%B-%d")`'
+output:
+   html_notebook: default
+   keep md: yes
+---
+$\alpha$ - version
+```{r setup,include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning=FALSE)
+knitr::opts_chunk$set(message=FALSE)
+```
+
+```{r}
+library(readr)
+library(forecast)
+library(tidyverse)
+```
+
+```{r}
+corona <- read_delim("C:/Users/ASUS/Desktop/Corona/Corona_GitHub/Covid-Serbia/April/coronaApril.txt", 
+    "\t", escape_double = FALSE, trim_ws = TRUE)
+```
+Za kreiranje projekcije koriscen je **modifikovani eksponencijalni model**:
+
+![Matematicki model](C:/Users/ASUS/Desktop/Corona/image.png)
+
+Prognoza broja obelelih za period od 03.04 do 09.04, odnosno za za **7 narednih dana**, prikazana je na slici ispod.
+
+```{r,include=FALSE}
+covid <- ts(corona[,4],start = 6)
+prognoza <- forecast(covid, h=7)
+checkresiduals(prognoza)
+```
+
+```{r}
+autoplot(prognoza,showgap=FALSE,fcol=2,main="Projekcija obolelih za narednih 7 dana",xlab="Dani od pocetka zaraze",ylab = "Broj obolelih")+
+  theme_bw() +
+  geom_vline(xintercept = c(5+dim(corona)[1]),col="red")
+```
+
+ U numerickim vrednostima kretanje broja obolelih moze se ocekivati u sledecim intervalima (scenarijima):
+ 
+ 
+```{r}
+tab <- matrix(NA,ncol=7,nrow=3)
+tab[1,] <- round(as.numeric(prognoza$upper[,2]))
+tab[2,] <- round(as.numeric(prognoza$mean))
+tab[3,] <- round(as.numeric(prognoza$lower[,2]))
+colnames(tab) <- c(paste0(3:9, c(rep(".04", 7))))
+rownames(tab) <- c("Najpesimisticniji", "Ocekivani", "Najoptimisticniji")
+knitr::kable(tab, digits=2)
+```
+
+ **Najpesimisticniji scenario**:
+`r round(as.numeric(prognoza$upper[,2]))`
+
+**Ocekivani**:
+`r round(as.numeric(prognoza$mean))`
+
+**Najoptimisticniji**:
+`r round(as.numeric(prognoza$lower[,2]))`
