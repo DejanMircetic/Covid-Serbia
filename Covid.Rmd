@@ -1,11 +1,11 @@
 ---
 title: "COVID-19 Draft"
-author: 'PhD Dejan Mircetic'
+author: "PhD Dejan Mircetic"
 date: '`r format(Sys.Date(), "%Y-%B-%d")`'
 output:
-  html_document: default
   html_notebook: default
   keep md: yes
+  html_document: default
 ---
 $\alpha$ - version
 
@@ -35,7 +35,8 @@ Prognoza broja obelelih za period od 22.03 do 31.03, odnosno za za **9 narednih 
 
 ```{r,include=FALSE}
 covid <- ts(corona[,4],start = 6)
-prognoza <- forecast(covid, h=9)
+model <- ets(covid, model = "ZZZ")#Dodat je multiplikativni trend
+prognoza <- forecast(model, h=9)
 checkresiduals(prognoza)
 ```
 
@@ -103,14 +104,14 @@ Mase greska iznosila je **`r (accuracy(prognoza,test)[2,6])`**.
 
 #Provjeravanje scenaria sa bias adjusted
 
-Ako smo ranije prilagodili prognoze jer su bile pristrasne za `r mean(prognoza$fitted)`. Na osnvou testa ispod vidimo da se rezidulai ne razlikuju od white noise jer je p vrijednost veca od 0.05.
+Ako smo ranije prilagodili prognoze jer su bile pristrasne za `r mean(prognoza$residuals)`. Na osnvou testa ispod vidimo da se rezidulai ne razlikuju od white noise jer je p vrijednost veca od 0.05.
 
 ```{r}
 checkresiduals(prognoza)
 ```
 ```{r}
-tacnost <- accuracy((prognoza$mean-57),test)
+tacnost <- accuracy((prognoza$mean-mean(prognoza$residuals)),test)
 knitr::kable(tacnost, digits=2, caption="Tabela 2. Tacnost prognoziranja.")
 ```
 
-Vidimo da bi na kraju imali vecu MAPE gresku prognoziranja, te da korekcija pristrasnosti nije bila dobra.
+Vidimo da bi na kraju imali malo vecu MAPE gresku prognoziranja, te da korekcija pristrasnosti nije bila dobra.
